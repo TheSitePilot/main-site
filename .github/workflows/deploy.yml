@@ -1,9 +1,9 @@
-name: Deploy Astro site to GitHub Pages
+name: Build and Deploy Astro to GitHub Pages
 
 on:
   push:
     branches:
-      - main  # or your default branch
+      - main  # or your dev branch
 
 permissions:
   contents: write
@@ -14,13 +14,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
 
       - name: Install dependencies
         run: npm ci
@@ -28,7 +28,7 @@ jobs:
       - name: Build Astro site
         run: npm run build
 
-      - name: Add .nojekyll
+      - name: Add .nojekyll file
         run: touch dist/.nojekyll
 
       - name: Deploy to GitHub Pages
