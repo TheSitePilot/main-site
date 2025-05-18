@@ -4,6 +4,8 @@ import ArticleCard from "../../components/ui/ArticleCard.astro";
 import SearchForm from "../../components/ui/SearchForm.astro";
 import { getCollection } from "astro:content";
 import type { CollectionEntry } from "astro:content";
+export const prerender = false;
+
 
 // Get query param safely (default to empty string)
 const queryParam = Astro.url.searchParams.get('query');
