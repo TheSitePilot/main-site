@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
+export const prerender = false;
+
 
 export const GET: APIRoute = async ({ url }): Promise<Response> => {
   const query: string | null = url.searchParams.get('query');
