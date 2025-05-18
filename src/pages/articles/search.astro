@@ -5,28 +5,23 @@ import SearchForm from "../../components/ui/SearchForm.astro";
 import { getCollection } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 
-const query: string | null = Astro.url.searchParams.get('query');
+// Get query param safely (default to empty string)
+const queryParam = Astro.url.searchParams.get('query');
+const query: string = queryParam?.toLowerCase() || '';
 
+// Load blog collection
 const allBlogArticles: CollectionEntry<'blog'>[] = await getCollection('blog');
 
-// Filter articles based on query
-const searchResults = allBlogArticles.filter(article => {
-  const titleMatch: boolean = article.data.title
-    .toLowerCase()
-    .includes(query!.toLowerCase());
-
-    const bodyMatch: boolean = article.body
-    .toLowerCase()
-    .includes(query!.toLowerCase());
-
-    const slugMatch: boolean = article.slug
-    .toLowerCase()
-    .includes(query!.toLowerCase());
-
-    return titleMatch || bodyMatch || slugMatch
-});
+// Filter articles based on safe query
+const searchResults = query
+  ? allBlogArticles.filter(article => {
+      const titleMatch = article.data.title.toLowerCase().includes(query);
+      const bodyMatch = article.body.toLowerCase().includes(query);
+      const slugMatch = article.slug.toLowerCase().includes(query);
+      return titleMatch || bodyMatch || slugMatch;
+    })
+  : [];
 ---
-
 <MainLayout title="Search Results">
 	<main class="space-y-20">
         <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
@@ -42,7 +37,7 @@ const searchResults = allBlogArticles.filter(article => {
             <br>
             <SearchForm />
             <br>
-            <h2 class="text-2xl pb-3 mt-6">Results For <strong>{query}</strong></h2>
+            <h2 class="text-2xl pb-3 mt-6">Results For <strong>{query || "…"}</strong></h2>
             <div class="grid gap-8 lg:grid-cols-2">
               {searchResults.map(article => (
                 <ArticleCard article={article} />
