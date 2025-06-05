@@ -1,14 +1,9 @@
 import { defineConfig } from 'astro/config';
+import tailwind from '@astrojs/tailwind';
 
-import tailwind from "@astrojs/tailwind";
-
-// Import the Vercel adapter
-import vercel from '@astrojs/vercel';
-
-// https://astro.build/config
 export default defineConfig({
-  site: "https://positivustheme.vercel.app",
+  site: "https://thesitepilot.github.io/main-site", // ✅ use your actual GitHub Pages URL
+  base: "/main-site/", // ✅ matches your repo name
   integrations: [tailwind()],
-  output: 'server',
-  adapter: vercel(),
+  output: 'static', // ✅ tells Astro to generate static HTML
 });
