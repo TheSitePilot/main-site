@@ -163,3 +163,14 @@
   font-size: 1.4rem;
   font-weight: bold;
 }
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.logo-carousel {
+  display: flex;
+  width: max-content;
+  animation: scroll 20s linear infinite;
+}

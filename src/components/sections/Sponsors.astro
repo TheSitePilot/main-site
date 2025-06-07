@@ -1,35 +1,79 @@
 ---
 import { Image } from "astro:assets";
-import s1 from "../../assets/company/company-logo1.svg";
-import s2 from "../../assets/company/company-logo2.svg";
-import s3 from "../../assets/company/company-logo3.svg";
-import s4 from "../../assets/company/company-logo4.svg";
-import s5 from "../../assets/company/company-logo5.svg";
-import s6 from "../../assets/company/company-logo6.svg";
+import s1 from "src/assets/company/Google-Ads-h.png";
+import s2 from "src/assets/company/App-Store.png";
+import s3 from "src/assets/company/Google-Business-h-2.png";
+import s4 from "src/assets/company/React-h.png";
+import s5 from "src/assets/company/Shopify-h.png";
+import s6 from "src/assets/company/Stripe-h.png";
+import s7 from "src/assets/company/Wordpress-h.png";
+import s8 from "src/assets/company/meta.svg";
 import Section from "./Section.astro";
 
 const sponsors = [
-  { logo: s6, alt: "Amazon logo" },
-  { logo: s5, alt: "Dribble logo" },
-  { logo: s4, alt: "HubSpot logo" },
-  { logo: s3, alt: "Notion logo" },
-  { logo: s2, alt: "Netflix logo" },
-  { logo: s1, alt: "Zoom logo" },
+  { logo: s1, alt: "Google Ads" },
+  { logo: s6, alt: "Stripe" },
+  { logo: s5, alt: "Shopify" },
+  { logo: s7, alt: "WordPress" },
+  { logo: s8, alt: "Meta" },
+  { logo: s4, alt: "React" },
+  { logo: s3, alt: "Google My Business" },
+  { logo: s2, alt: "App Store" }
 ];
 ---
 
-<Section id="sponsors">
-  <div class="flex-row items-center">
-  <div class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6">
-    {
-      sponsors.map((sponsor) => {
-        return (
-          <div class="p-4 grayscale transition duration-200 hover:grayscale-0">
-            <Image src={sponsor.logo} class="h-12 w-auto mx-auto" alt={sponsor.alt} loading="lazy" />
+<Section id="sponsors" class="py-12 bg-white">
+  <div class="mx-auto max-w-6xl">
+    <!-- Scrollable wrapper -->
+    <div id="logo-wrapper" class="overflow-x-auto no-scrollbar scroll-smooth">
+      <!-- Long logo track -->
+      <div id="logo-track" class="flex w-max gap-x-6">
+        {
+          [...sponsors, ...sponsors, ...sponsors, ...sponsors].map((sponsor, index) => (
+            <div class="w-48 h-20 flex items-center justify-center flex-shrink-0 p-4">
+            <Image
+              src={sponsor.logo}
+              alt={sponsor.alt}
+              loading="lazy"
+              class="h-full object-contain grayscale hover:grayscale-0 transition duration-200"
+            />
           </div>
-        );
-      })
-    }
+          ))
+        }
+      </div>
+    </div>
   </div>
-  </div> 
 </Section>
+
+<style>
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>
+
+<script type="module">
+  if (typeof window !== "undefined") {
+    const wrapper = document.getElementById('logo-wrapper');
+
+    // Run after layout is ready
+    window.addEventListener('load', () => {
+      const logo = wrapper.querySelector('.w-48');
+      if (!wrapper || !logo) return;
+
+      const scrollStep = logo.offsetWidth + 24; // 24 = gap-x-6
+      let scrollAmount = 0;
+
+      setInterval(() => {
+        scrollAmount += scrollStep;
+        if (scrollAmount >= wrapper.scrollWidth / 2) {
+          scrollAmount = 0;
+        }
+        wrapper.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+      }, 2500);
+    });
+  }
+</script>
