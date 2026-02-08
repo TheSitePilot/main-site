@@ -1,0 +1,317 @@
+---
+import MainLayout from "../../../layouts/MainLayout.astro";
+---
+
+<MainLayout 
+  title="Betta Film - Questionnaire"
+  description="Betta Film Client Questionnaire"
+>
+  <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
+    <div class="max-w-4xl mx-auto">
+      <!-- Header Section -->
+      <div class="text-center space-y-6 mb-12">
+        <h1 class="text-4xl md:text-5xl font-medium leading-tight">
+          Betta Film <span class="greenhead">Questionnaire</span>
+        </h1>
+        <p class="text-lg text-gray-600">
+          Please answer the following questions to help us understand your project better.
+        </p>
+      </div>
+
+      <!-- Questionnaire Form -->
+      <div class="bg-gray-50 rounded-3xl p-8 md:p-12 space-y-8">
+        <form id="questionnaire-form" class="space-y-6">
+          <div id="form-questions" class="space-y-6">
+            <div class="flex items-center justify-center py-8">
+              <div class="text-center space-y-4">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
+                <p class="text-gray-500 italic">Loading questions...</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="submit-container" class="hidden pt-4">
+            <button type="submit" class="btn-primary w-full md:w-auto">
+              Submit Questionnaire
+            </button>
+          </div>
+        </form>
+
+        <!-- Responses Display -->
+        <div id="responses-display" class="hidden mt-8 p-6 bg-white rounded-2xl border-2 border-green">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-medium">✅ Questionnaire Submitted Successfully!</h3>
+          </div>
+          <p class="text-gray-600 mb-4">Thank you for your responses. Here's what you submitted:</p>
+          <div id="responses-content" class="space-y-3 mb-6"></div>
+          
+          <div class="flex gap-3 pt-4 border-t border-gray-200">
+            <button id="download-json-btn" class="btn-secondary">
+              📥 Download Responses (JSON)
+            </button>
+            <button id="download-pdf-btn" class="btn-secondary">
+              📄 Download Responses (Text)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+</style>
+
+<script>
+  // Question interface
+  interface Question {
+    id: string;
+    text: string;
+    type: string;
+    options?: string[];
+    required: boolean;
+  }
+
+  // State
+  let questions: Question[] = [];
+  let submittedResponses: { [key: string]: any } = {};
+
+  // Load questions from localStorage
+  function loadQuestions() {
+    const stored = localStorage.getItem('bettafilm-questions');
+    if (stored) {
+      questions = JSON.parse(stored);
+    }
+    renderQuestionnaireForm();
+  }
+
+  // Render questionnaire form
+  function renderQuestionnaireForm() {
+    const container = document.getElementById('form-questions');
+    const submitContainer = document.getElementById('submit-container');
+    if (!container) return;
+
+    if (questions.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-8 space-y-4">
+          <p class="text-gray-500 text-lg">No questions available at the moment.</p>
+          <p class="text-gray-400 text-sm">Please contact the administrator if you believe this is an error.</p>
+        </div>
+      `;
+      submitContainer?.classList.add('hidden');
+      return;
+    }
+
+    submitContainer?.classList.remove('hidden');
+
+    container.innerHTML = questions.map((q, index) => {
+      const fieldId = `field-${q.id}`;
+      let inputHtml = '';
+
+      switch (q.type) {
+        case 'textarea':
+          inputHtml = `<textarea id="${fieldId}" name="${fieldId}" rows="4" ${q.required ? 'required' : ''} placeholder="Enter your answer here..." class="w-full px-4 py-3 border border-black rounded-lg outline-none focus:ring-2 focus:ring-green resize-none"></textarea>`;
+          break;
+        case 'radio':
+          inputHtml = `<div class="space-y-2">${q.options?.map((opt, i) => `
+            <label class="flex items-center gap-3 cursor-pointer p-3 border border-gray-300 rounded-lg hover:border-green transition-colors">
+              <input type="radio" name="${fieldId}" value="${opt}" ${q.required && i === 0 ? 'required' : ''} class="w-5 h-5 border border-black text-green focus:ring-green">
+              <span class="flex-1">${opt}</span>
+            </label>
+          `).join('')}</div>`;
+          break;
+        case 'checkbox':
+          inputHtml = `<div class="space-y-2">${q.options?.map(opt => `
+            <label class="flex items-center gap-3 cursor-pointer p-3 border border-gray-300 rounded-lg hover:border-green transition-colors">
+              <input type="checkbox" name="${fieldId}" value="${opt}" class="w-5 h-5 border border-black rounded text-green focus:ring-green">
+              <span class="flex-1">${opt}</span>
+            </label>
+          `).join('')}</div>`;
+          break;
+        case 'number':
+          inputHtml = `<input type="number" id="${fieldId}" name="${fieldId}" ${q.required ? 'required' : ''} placeholder="Enter a number..." class="w-full px-4 py-3 border border-black rounded-lg outline-none focus:ring-2 focus:ring-green">`;
+          break;
+        case 'email':
+          inputHtml = `<input type="email" id="${fieldId}" name="${fieldId}" ${q.required ? 'required' : ''} placeholder="your@email.com" class="w-full px-4 py-3 border border-black rounded-lg outline-none focus:ring-2 focus:ring-green">`;
+          break;
+        case 'phone':
+          inputHtml = `<input type="tel" id="${fieldId}" name="${fieldId}" ${q.required ? 'required' : ''} placeholder="+1 (555) 000-0000" class="w-full px-4 py-3 border border-black rounded-lg outline-none focus:ring-2 focus:ring-green">`;
+          break;
+        case 'date':
+          inputHtml = `<input type="date" id="${fieldId}" name="${fieldId}" ${q.required ? 'required' : ''} class="w-full px-4 py-3 border border-black rounded-lg outline-none focus:ring-2 focus:ring-green">`;
+          break;
+        default:
+          inputHtml = `<input type="text" id="${fieldId}" name="${fieldId}" ${q.required ? 'required' : ''} placeholder="Enter your answer..." class="w-full px-4 py-3 border border-black rounded-lg outline-none focus:ring-2 focus:ring-green">`;
+      }
+
+      return `
+        <div class="space-y-3 p-6 bg-white rounded-xl border border-gray-200">
+          <label class="block text-black font-medium text-lg">
+            ${index + 1}. ${q.text}
+            ${q.required ? '<span class="text-red-500">*</span>' : '<span class="text-gray-400 text-sm font-normal">(Optional)</span>'}
+          </label>
+          ${inputHtml}
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Save response to server
+  async function saveResponseToServer(responses: { [key: string]: any }) {
+    try {
+      const response = await fetch('/api/bettafilm/responses.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ responses })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save response');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error saving response:', error);
+      alert('Failed to save response. Please try again.');
+      throw error;
+    }
+  }
+
+  // Handle form submission
+  function setupFormSubmission() {
+    const form = document.getElementById('questionnaire-form');
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target as HTMLFormElement);
+      const responses: { [key: string]: any } = {};
+
+      questions.forEach(q => {
+        const fieldId = `field-${q.id}`;
+        if (q.type === 'checkbox') {
+          const values = formData.getAll(fieldId);
+          responses[q.text] = values.length > 0 ? values : ['No answer provided'];
+        } else {
+          const value = formData.get(fieldId);
+          responses[q.text] = value || 'No answer provided';
+        }
+      });
+
+      submittedResponses = responses;
+      
+      // Show loading state
+      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      try {
+        // Save to server
+        await saveResponseToServer(responses);
+        
+        displayResponses(responses);
+        
+        // Hide form and submit button
+        form.style.display = 'none';
+      } catch (error) {
+        // Restore button state on error
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+  }
+
+  // Display responses
+  function displayResponses(responses: { [key: string]: any }) {
+    const display = document.getElementById('responses-display');
+    const content = document.getElementById('responses-content');
+    if (!display || !content) return;
+
+    display.classList.remove('hidden');
+
+    content.innerHTML = Object.entries(responses).map(([question, answer]) => {
+      const displayAnswer = Array.isArray(answer) 
+        ? answer.join(', ') 
+        : answer || '<em class="text-gray-400">No answer</em>';
+      
+      return `
+        <div class="pb-3 border-b border-gray-200 last:border-b-0">
+          <p class="font-medium text-gray-800 mb-1">${question}</p>
+          <p class="text-gray-600">${displayAnswer}</p>
+        </div>
+      `;
+    }).join('');
+
+    // Scroll to responses
+    display.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Download responses as JSON
+  function setupDownloadJSON() {
+    const downloadBtn = document.getElementById('download-json-btn');
+    downloadBtn?.addEventListener('click', () => {
+      const timestamp = new Date().toISOString().split('T')[0];
+      const dataStr = JSON.stringify({
+        submittedAt: new Date().toISOString(),
+        responses: submittedResponses
+      }, null, 2);
+      
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bettafilm-responses-${timestamp}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // Download responses as text
+  function setupDownloadText() {
+    const downloadBtn = document.getElementById('download-pdf-btn');
+    downloadBtn?.addEventListener('click', () => {
+      const timestamp = new Date().toISOString();
+      let textContent = `BETTA FILM QUESTIONNAIRE RESPONSES\n`;
+      textContent += `Submitted: ${timestamp}\n`;
+      textContent += `${'='.repeat(60)}\n\n`;
+
+      Object.entries(submittedResponses).forEach(([question, answer], index) => {
+        textContent += `${index + 1}. ${question}\n`;
+        const displayAnswer = Array.isArray(answer) ? answer.join(', ') : answer;
+        textContent += `   Answer: ${displayAnswer}\n\n`;
+      });
+
+      const dataBlob = new Blob([textContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bettafilm-responses-${timestamp.split('T')[0]}.txt`;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // Initialize
+  function init() {
+    loadQuestions();
+    setupFormSubmission();
+    setupDownloadJSON();
+    setupDownloadText();
+  }
+
+  // Run on page load
+  init();
+
+  // Re-run on Astro page transitions
+  document.addEventListener('astro:after-swap', init);
+</script>
+</MainLayout>
