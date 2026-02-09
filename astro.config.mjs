@@ -2,9 +2,8 @@ import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 
 export default defineConfig({
-  // For GitHub Pages project site: https://thesitepilot.github.io/main-site/
-  site: "https://thesitepilot.github.io",
-  base: "/main-site",
+  // Custom domain: https://thesitepilot.com (served from root, no base path)
+  site: "https://thesitepilot.com",
   integrations: [tailwind()],
   output: 'static'
 });
